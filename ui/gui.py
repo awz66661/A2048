@@ -4,6 +4,7 @@ import pygame
 import sys
 from game.game import Game
 from game.constants import TILE_SIZE, WINDOW_SIZE, BACKGROUND_COLOR, TILE_COLORS
+from loguru import logger
 
 class GUI:
     def __init__(self):
@@ -16,8 +17,10 @@ class GUI:
         self.game = Game()
         self.buttons = []
         self.draw_board()
+        logger.info("Game initialized")
 
     def draw_board(self):
+        logger.info("Drawing board")
         self.screen.fill(BACKGROUND_COLOR)
         for r, row in enumerate(self.game.get_grid()):
             for c, value in enumerate(row):
@@ -30,19 +33,20 @@ class GUI:
                     self.screen.blit(text_surface, text_rect)
 
         # Draw score with red text at right upper corner
-        text_surface = self.score_font.render(f"Score: {self.game.score}", True, (255, 0, 0))
-        text_rect = text_surface.get_rect(center=(WINDOW_SIZE - 50, 25))
+        text_surface = self.score_font.render(f"Press U to Undo    Score: {self.game.board.score}", True, (255, 0, 0))
+        text_rect = text_surface.get_rect(topright=(WINDOW_SIZE - 10, 10))
         self.screen.blit(text_surface, text_rect)
 
         pygame.display.update()
 
     def draw_buttons(self, message):
+        logger.info(f"Drawing buttons with message: {message}")
         self.screen.fill(BACKGROUND_COLOR)
         text_surface = self.font.render(message, True, (255, 0, 0))
         text_rect = text_surface.get_rect(center=(WINDOW_SIZE / 2, WINDOW_SIZE / 2 - 120))
         self.screen.blit(text_surface, text_rect)
 
-        text_score = self.font.render(f"Score: {self.game.score}", True, (0, 0, 0))
+        text_score = self.font.render(f"Score: {self.game.board.score}", True, (0, 0, 0))
         text_score_rect = text_score.get_rect(center=(WINDOW_SIZE / 2, WINDOW_SIZE / 2 - 60))
         self.screen.blit(text_score, text_score_rect)
 
@@ -69,27 +73,30 @@ class GUI:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    logger.info("Quit event received")
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
+                    logger.info(f"Keydown event: {pygame.key.name(event.key)}")
                     if not self.buttons:
-                        if event.key == pygame.K_UP:
-                            self.game.move(0)
-                        elif event.key == pygame.K_RIGHT:
-                            self.game.move(1)
-                        elif event.key == pygame.K_DOWN:
-                            self.game.move(2)
-                        elif event.key == pygame.K_LEFT:
-                            self.game.move(3)
+                        if event.key in [pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
+                            self.game.move([pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN].index(event.key))
+                        elif event.key == pygame.K_u:
+                            self.game.undo()
+                            logger.info("Undo action performed")
                         self.draw_board()
                         if self.game.won:
+                            logger.info("Game won")
                             self.draw_buttons("You win!")
                         elif self.game.is_game_over():
+                            logger.info("Game over")
                             self.draw_buttons("Game Over")
                 elif event.type == pygame.MOUSEBUTTONDOWN and self.buttons:
                     pos = pygame.mouse.get_pos()
+                    logger.info(f"Mouse button down at position: {pos}")
                     for name, button in self.buttons:
                         if button.collidepoint(pos):
+                            logger.info(f"Button {name} clicked")
                             if name == "retry":
                                 self.game = Game()
                                 self.buttons = []
@@ -100,8 +107,12 @@ class GUI:
             clock.tick(30)
 
     def show_message(self, message):
+        logger.info(f"Showing message: {message}")
         self.draw_buttons(message)
 
 def main():
     gui = GUI()
     gui.run()
+
+if __name__ == "__main__":
+    main()
