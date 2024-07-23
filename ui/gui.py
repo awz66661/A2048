@@ -3,7 +3,7 @@
 import pygame
 import sys
 from game.game import Game
-from game.constants import TILE_SIZE, WINDOW_SIZE, BACKGROUND_COLOR, TILE_COLORS
+from game.constants import TILE_SIZE, WINDOW_SIZE, BACKGROUND_COLOR, TILE_COLORS, FONTRATE, AUTO_PLAY_INTERVAL
 from loguru import logger
 
 class GUI:
@@ -11,13 +11,18 @@ class GUI:
         pygame.init()
         self.screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
         pygame.display.set_caption('2048')
-        self.font = pygame.font.Font(None, 72)
-        self.button_font = pygame.font.Font(None, 36)
+        self.font = pygame.font.Font(None, int(72 * FONTRATE))
+        self.button_font = pygame.font.Font(None, int(36 * FONTRATE))
         self.score_font = pygame.font.Font(None, 24)
         self.game = Game()
         self.buttons = []
         self.draw_board()
         logger.info("Game initialized")
+
+    def get_color(self, value):
+        if value in TILE_COLORS:
+            return TILE_COLORS[value]
+        return (237, 194, 46)
 
     def draw_board(self):
         logger.info("Drawing board")
@@ -26,7 +31,7 @@ class GUI:
             for c, value in enumerate(row):
                 x = c * TILE_SIZE
                 y = r * TILE_SIZE
-                pygame.draw.rect(self.screen, TILE_COLORS[value], (x, y, TILE_SIZE, TILE_SIZE))
+                pygame.draw.rect(self.screen, self.get_color(value), (x, y, TILE_SIZE, TILE_SIZE))
                 if value:
                     text_surface = self.font.render(str(value), True, (0, 0, 0))
                     text_rect = text_surface.get_rect(center=(x + TILE_SIZE / 2, y + TILE_SIZE / 2))
@@ -81,6 +86,8 @@ class GUI:
                     if not self.buttons:
                         if event.key in [pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN]:
                             self.game.move([pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN].index(event.key))
+                        elif event.key in [pygame.K_a, pygame.K_w, pygame.K_d, pygame.K_s]:
+                            self.game.move([pygame.K_a, pygame.K_w, pygame.K_d, pygame.K_s].index(event.key))
                         elif event.key == pygame.K_u:
                             self.game.undo()
                             logger.info("Undo action performed")
@@ -106,6 +113,35 @@ class GUI:
                                 sys.exit()
             clock.tick(30)
 
+    def runRandom(self):
+        # Randomly move the game with 0.1s interval, use space to pause/continue
+        import random
+        import time
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    logger.info("Quit event received")
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    logger.info(f"Keydown event: {pygame.key.name(event.key)}")
+                    if event.key == pygame.K_SPACE:
+                        while True:
+                            event = pygame.event.wait()
+                            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                                break
+            if not self.buttons:
+                self.game.move(random.randint(0, 3))
+                self.draw_board()
+                if self.game.won:
+                    logger.info("Game won")
+                    self.draw_buttons("You win!")
+                elif self.game.is_game_over():
+                    logger.info("Game over")
+                    self.draw_buttons("Game Over")
+            time.sleep(AUTO_PLAY_INTERVAL)
+
+
     def show_message(self, message):
         logger.info(f"Showing message: {message}")
         self.draw_buttons(message)
@@ -113,6 +149,10 @@ class GUI:
 def main():
     gui = GUI()
     gui.run()
+
+def mainRandom():
+    gui = GUI()
+    gui.runRandom()
 
 if __name__ == "__main__":
     main()
