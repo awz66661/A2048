@@ -16,7 +16,7 @@ class Board:
         empty_cells = [(r, c) for r in range(GRID_SIZE) for c in range(GRID_SIZE) if self.grid[r][c] == 0]
         if empty_cells:
             r, c = random.choice(empty_cells)
-            self.grid[r][c] = NEW_TILE_VALUE
+            self.grid[r][c] = random.choice(NEW_TILE_VALUE)
 
     def board_row(self, grid):
         tmpgrid = self.rotate_board_counterclockwise(grid)
