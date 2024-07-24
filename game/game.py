@@ -12,9 +12,11 @@ class Game:
         self.history = []
 
     def move(self, direction):
+        current_state = (self.board.grid, self.score)
         moved = self.board.move(direction)
         if moved:
-            self.history.append((self.board.grid, self.score))
+            self.history.append(current_state)
+            logger.debug(self.board.grid)
             if any(WINNING_TILE in row for row in self.board.grid):
                 self.won = True
         self.score = self.board.score
@@ -37,6 +39,7 @@ class Game:
     def undo(self):
         if self.history:
             self.board.grid, self.board.score = self.history.pop()
+            logger.debug(self.board.grid)
             self.score = self.board.score
         else:
             logger.warning("No moves to undo")
