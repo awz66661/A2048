@@ -38,7 +38,7 @@ class GUI:
                     self.screen.blit(text_surface, text_rect)
 
         # Draw score with red text at right upper corner
-        text_surface = self.score_font.render(f"Press U to Undo    Score: {self.game.board.score}", True, (255, 0, 0))
+        text_surface = self.score_font.render(f"Press U to Undo Steps:{self.game.steps} Score: {self.game.board.score}", True, (255, 0, 0))
         text_rect = text_surface.get_rect(topright=(WINDOW_SIZE - 10, 10))
         self.screen.blit(text_surface, text_rect)
 

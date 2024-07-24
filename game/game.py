@@ -9,6 +9,7 @@ class Game:
         self.board = Board()
         self.won = False
         self.score = 0
+        self.steps = 0
         self.history = []
 
     def move(self, direction):
@@ -16,7 +17,7 @@ class Game:
         moved = self.board.move(direction)
         if moved:
             self.history.append(current_state)
-            logger.debug(self.board.grid)
+            self.steps += 1
             if any(WINNING_TILE in row for row in self.board.grid):
                 self.won = True
         self.score = self.board.score
